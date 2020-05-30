@@ -64,38 +64,38 @@ char add(char a[], char b[], char sum[])
 //Complemento
 void comp(char sum[])
 {
-    char complement[16];
     int index;
 
     for (index = 0; index < 16; index++)
     {
         if (sum[index] == '0')
         {
-            complement[index] = '1';
+            sum[index] = '1';
         }
         else
         {
-            complement[index] = '0';
+            sum[index] = '0';
         }
     }
 
-    printf("\nChecksum=%s", complement);
     return;
 }
 
 // Ajusta o mais um do algarismo mais significativo 
 
 void checkSum(char w1[],char w2[],char w3[]) {
-    char wordAux[16],carryAdd;
+    char wordAux[] = "0000000000000000";
+    char carryAdd;
 
     carryAdd = add(w1,w2,wordAux);
     if(carryAdd=='1') {
         carryAdd = add(wordAux,"0000000000000001",w3);
     }
     comp(w3);
+    printf("\nChecksum=%s", w3);
 }
 
 int main () {
-    char word[16];
+    char word[]="0000000000000000";
     checkSum("1000100100100101","1000010111110001",word);
 }
