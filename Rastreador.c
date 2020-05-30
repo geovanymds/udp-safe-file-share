@@ -1,5 +1,5 @@
 #include <windows.h>
-  #include <winsock.h>
+#include <winsock.h>
 #include <stdio.h>
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.
