@@ -8,13 +8,15 @@
   #include "utils/binaryFunctions.h"
 #include <time.h>
   #include <stdbool.h>
+#include <string.h>
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.
 #define MAX_MSG 100 //tamanho maximo de uma mensagem.
 #define BUFFER_SIZE 480 
 
 int main(int argc, char *argv[]){
-  int i, j;
+  int i, j, serieNumber;
+  char binarySerieNumber[32], ackReceive[33],auxReceive[32],auxSerieNumber[32];
   bool confirmacao;
   //inicializa a biblioteca de sockets no windows.
   int result; //variavel para validação de erros
@@ -74,10 +76,16 @@ int main(int argc, char *argv[]){
         char palavra2[17];
         char wordAux[17];
         char carryAdd;
+        
+        serieNumber = 1;
+
+        //Sending file in packages
         while(tam > 0){
           memset(palavra1,0x0,17);
           fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-17, reader);
-          for(i = 0; i < BUFFER_SIZE-17; i++){
+
+          //To generating a checksum
+          for(i = 0; i < BUFFER_SIZE-49; i++){
             if(i == 0){
               for(j = 0; j < CHAR_BIT; j++){
                 palavra1[j] = (((pacote[i]>>j)&1)  + '0');
@@ -112,16 +120,35 @@ int main(int argc, char *argv[]){
           comp(palavra1);
           printf("P1: %s\n", palavra1);
           j = 0;
-          for(i = BUFFER_SIZE-17; i < BUFFER_SIZE-1; i++){
+
+          // Writing checksum in the package
+          for(i = BUFFER_SIZE-49; i < BUFFER_SIZE-33; i++){
             pacote[i] = palavra1[j];
             j++;
           }
-          if((tam - BUFFER_SIZE+17) <= 0){
-            pacote[BUFFER_SIZE-1] = tam;
+          if((tam - BUFFER_SIZE+49) <= 0){
+            pacote[BUFFER_SIZE-33] = tam;
           }
           else{
-            pacote[BUFFER_SIZE-1] = 1;
+            pacote[BUFFER_SIZE-33] = 1;
           }
+
+          memset(binarySerieNumber,'0',32);
+
+          result = decToBinary(serieNumber,binarySerieNumber);
+
+          int aux = 0;
+
+          for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++) {
+             if (i<BUFFER_SIZE-result) {
+               pacote[i]='0';
+             }
+             else {
+               pacote[i] = binarySerieNumber[aux];
+               aux++;
+             }
+          }
+          
           confirmacao = false;
           while (confirmacao == false)
           {
@@ -135,8 +162,12 @@ int main(int argc, char *argv[]){
             clock_t espera = clock() + 100; // timer de aproximadamente 0,5 segundo
             while (clock() < espera)
             {
-              recvfrom(sock, buffer, MAX_MSG, 0, (struct sockaddr *) &clientAddress, &cliLength);
-              if(buffer == "ack")
+
+              recvfrom(sock, ackReceive, 33, 0, (struct sockaddr *) &clientAddress, &cliLength);
+              strncpy(auxReceive,ackReceive+1,32);
+              strncpy(auxSerieNumber,pacote+(BUFFER_SIZE-32),32);
+
+              if((ackReceive[0] == '1')&&(!strcmp(auxSerieNumber,auxReceive)))
               {
                 confirmacao = true;
                 break;

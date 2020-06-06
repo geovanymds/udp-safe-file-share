@@ -3,7 +3,7 @@
 
 char add(char a[], char b[],char sum[]);
 void comp(char sum[]);
-void checkSum(char w1[],char w2[],char *w3);
+int decToBinary(int n, char binaryNum[]); 
 
 #endif /* BINARYFUNCIONS_H */
 

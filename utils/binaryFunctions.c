@@ -81,21 +81,18 @@ void comp(char sum[])
     return;
 }
 
-// Ajusta o mais um do algarismo mais significativo 
-
-void checkSum(char w1[],char w2[],char w3[]) {
-    char wordAux[] = "0000000000000000";
-    char carryAdd;
-
-    carryAdd = add(w1,w2,wordAux);
-    if(carryAdd=='1') {
-        carryAdd = add(wordAux,"0000000000000001",w3);
-    }
-    comp(w3);
-    printf("\nChecksum=%s", w3);
+int decToBinary(int n, char binaryNum[]) 
+{ 
+    // counter for binary array 
+    int i = 0; 
+    while (n > 0) { 
+  
+        // storing remainder in binary array 
+        binaryNum[i] = n % 2; 
+        n = n / 2; 
+        i++; 
+    } 
+    return(i);
 }
 
-int main () {
-    char word[]="0000000000000000";
-    checkSum("1000100100100101","1000010111110001",word);
-}
+
