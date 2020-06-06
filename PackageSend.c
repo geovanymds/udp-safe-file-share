@@ -6,6 +6,8 @@
   #include<sys/stat.h>
 #include <limits.h>
   #include "utils/binaryFunctions.h"
+#include <time.h>
+  #include <stdbool.h>
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.
 #define MAX_MSG 100 //tamanho maximo de uma mensagem.
@@ -13,6 +15,7 @@
 
 int main(int argc, char *argv[]){
   int i, j;
+  bool confirmacao;
   //inicializa a biblioteca de sockets no windows.
   int result; //variavel para validação de erros
   WSADATA wsaData;
@@ -119,10 +122,26 @@ int main(int argc, char *argv[]){
           else{
             pacote[BUFFER_SIZE-1] = 1;
           }
-          result = sendto(sock, (const char *)pacote, BUFFER_SIZE, 0,
-          (LPSOCKADDR) &clientAddress, sizeof(struct sockaddr));
-          if(result == SOCKET_ERROR) {
-          printf("Nao pode enviar dados de resposta\n");
+          confirmacao = false;
+          while (confirmacao == false)
+          {
+            //Envia mensagem
+            result = sendto(sock, (const char *)pacote, BUFFER_SIZE, 0,
+            (LPSOCKADDR) &clientAddress, sizeof(struct sockaddr));
+            if(result == SOCKET_ERROR) {
+              printf("Nao pode enviar dados de resposta\n");
+            }
+              
+            clock_t espera = clock() + 100; // timer de aproximadamente 0,5 segundo
+            while (clock() < espera)
+            {
+              recvfrom(sock, buffer, MAX_MSG, 0, (struct sockaddr *) &clientAddress, &cliLength);
+              if(buffer == "ack")
+              {
+                confirmacao = true;
+                break;
+              }
+            }
           }
           tam = tam - (BUFFER_SIZE-17);
         }
