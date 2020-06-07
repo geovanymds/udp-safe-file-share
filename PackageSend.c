@@ -15,14 +15,11 @@
 #define BUFFER_SIZE 480 
 
 int main(int argc, char *argv[]){
-  int i, j, serieNumber;
+  int i, j, serieNumber, t = 0;
   char binarySerieNumber[33];
-  char ackReceive[33];
-  char auxReceive[32];
-  char auxSerieNumber[32];
-  memset(ackReceive, 0x0, 33);
-  memset(auxReceive, 0x0, 32);
-  memset(auxSerieNumber, 0x0, 32);
+  char ackReceive[] = "000000000000000000000000000000000";
+  char auxReceive[] = "00000000000000000000000000000000";
+  char auxSerieNumber[] = "00000000000000000000000000000000";
   bool confirmacao;
   bool vemACK;
   //inicializa a biblioteca de sockets no windows.
@@ -89,7 +86,7 @@ int main(int argc, char *argv[]){
         //Sending file in packages
         while(tam > 0){
           memset(palavra1,0x0,17);
-          fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-17, reader);
+          fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-49, reader);
 
           //To generating a checksum
           for(i = 0; i < BUFFER_SIZE-49; i++){
@@ -142,18 +139,16 @@ int main(int argc, char *argv[]){
 
           memset(binarySerieNumber,'0',32);
 
-          result = decToBinary(serieNumber,binarySerieNumber);
+          decToBinary(serieNumber,binarySerieNumber);
 
           int aux = 0;
           for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
-             if (i<BUFFER_SIZE-(result+1)) {
-               pacote[i]='0';
-             }
-             else {
-               pacote[i] = binarySerieNumber[aux];
-               aux++;
-             }
+            pacote[i] = binarySerieNumber[aux]; 
+            printf(" %c", pacote[i]);
+            aux++;
           }
+        
+          printf("\n");
           confirmacao = false;
           while (confirmacao == false)
           {
@@ -189,18 +184,14 @@ int main(int argc, char *argv[]){
                 auxReceive[j] = pacote[i];
                 j++;
               }
-
-              printf()
               if((ackReceive[0] == '1')&&(!strcmp(auxSerieNumber,auxReceive)))
               {
-                printf("receive ack\n");
                 confirmacao = true;
                 break;
               }
-              // printf("receive ack XX\n");
             }
           }
-          tam = tam - (BUFFER_SIZE-17);
+          tam = tam - (BUFFER_SIZE-49);
           serieNumber++;
         }
         fclose(reader);

@@ -77,19 +77,26 @@ void comp(char sum[])
     return;
 }
 
-int decToBinary(int n, char binaryNum[]) 
+void decToBinary(int n, char binaryNum[]) 
 { 
-    // counter for binary array 
-    int i = 0; 
-    while (n >= 2) { 
-  
-        // storing remainder in binary array 
-        binaryNum[i] = (n % 2) + '0'; 
-        n = n / 2; 
-        i++; 
-    } 
-    binaryNum[i] = n + '0'; 
-    return(i);
+    int r; // Resultado do deslocamento
+    int i; // Contador
+
+    // Utiliza um número de 32 bits como base para a conversão.
+    for(i = 31; i >= 0; i--) {
+    // Executa a operação shift right até a 
+    // última posição da direita para cada bit.
+    r = n >> i;
+            
+    // Por meio do "e" lógico ele compara se o valor 
+    // na posição mais à direita é 1 ou 0 
+    // e imprime na tela até reproduzir o número binário.
+    if(r & 1) {
+        binaryNum[31 - i] = '1';
+    } else {
+        binaryNum[31 - i] = '0';
+    }
+    }
 }
 
 
