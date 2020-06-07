@@ -8,8 +8,6 @@ char add(char a[], char b[], char sum[])
 
     int index;
     char carry='0';
-    printf("\na=%s", a);
-    printf("\nb=%s", b);
 
     for (index = 15; index >= 0; index--)
     {
@@ -56,8 +54,6 @@ char add(char a[], char b[], char sum[])
         else
             break;
     }
-
-    printf("\nSum=%s", sum);
     return (carry);
 }
 
@@ -85,13 +81,14 @@ int decToBinary(int n, char binaryNum[])
 { 
     // counter for binary array 
     int i = 0; 
-    while (n > 0) { 
+    while (n >= 2) { 
   
         // storing remainder in binary array 
-        binaryNum[i] = n % 2; 
+        binaryNum[i] = (n % 2) + '0'; 
         n = n / 2; 
         i++; 
     } 
+    binaryNum[i] = n + '0'; 
     return(i);
 }
 

@@ -16,8 +16,15 @@
 
 int main(int argc, char *argv[]){
   int i, j, serieNumber;
-  char binarySerieNumber[32], ackReceive[33],auxReceive[32],auxSerieNumber[32];
+  char binarySerieNumber[33];
+  char ackReceive[33];
+  char auxReceive[32];
+  char auxSerieNumber[32];
+  memset(ackReceive, 0x0, 33);
+  memset(auxReceive, 0x0, 32);
+  memset(auxSerieNumber, 0x0, 32);
   bool confirmacao;
+  bool vemACK;
   //inicializa a biblioteca de sockets no windows.
   int result; //variavel para validação de erros
   WSADATA wsaData;
@@ -138,9 +145,8 @@ int main(int argc, char *argv[]){
           result = decToBinary(serieNumber,binarySerieNumber);
 
           int aux = 0;
-
-          for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++) {
-             if (i<BUFFER_SIZE-result) {
+          for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
+             if (i<BUFFER_SIZE-(result+1)) {
                pacote[i]='0';
              }
              else {
@@ -148,7 +154,6 @@ int main(int argc, char *argv[]){
                aux++;
              }
           }
-          
           confirmacao = false;
           while (confirmacao == false)
           {
@@ -158,23 +163,45 @@ int main(int argc, char *argv[]){
             if(result == SOCKET_ERROR) {
               printf("Nao pode enviar dados de resposta\n");
             }
+            // printf("ENVIEI...\n");
               
             clock_t espera = clock() + 100; // timer de aproximadamente 0,5 segundo
+            vemACK = true;
             while (clock() < espera)
             {
+              if(vemACK){
+                result = recvfrom(sock, ackReceive, 33, 0, (struct sockaddr *) &clientAddress, &cliLength);
+                if(result == SOCKET_ERROR) {
+                  printf("Nao pode receber ack\n");
+                }
+                else
+                  vemACK = false;
+                  // strncpy(auxReceive, &ackReceive[1], (size_t) 32);
+                  // strncpy(auxSerieNumber, &pacote[BUFFER_SIZE-32], (size_t) 32);
+              }
+              j = 0;
+              for(i = 1; i < 33; i++){
+                auxSerieNumber[j] = ackReceive[i];
+                j++;
+              }
+              j = 0;
+              for(i = BUFFER_SIZE-32; i < BUFFER_SIZE; i++){
+                auxReceive[j] = pacote[i];
+                j++;
+              }
 
-              recvfrom(sock, ackReceive, 33, 0, (struct sockaddr *) &clientAddress, &cliLength);
-              strncpy(auxReceive,ackReceive+1,32);
-              strncpy(auxSerieNumber,pacote+(BUFFER_SIZE-32),32);
-
+              printf()
               if((ackReceive[0] == '1')&&(!strcmp(auxSerieNumber,auxReceive)))
               {
+                printf("receive ack\n");
                 confirmacao = true;
                 break;
               }
+              // printf("receive ack XX\n");
             }
           }
           tam = tam - (BUFFER_SIZE-17);
+          serieNumber++;
         }
         fclose(reader);
       }

@@ -165,7 +165,10 @@ int main(int argc, char *argv[])
           for (i = 1; i < 33; i++)
           {
             ack[i] = pacote[j];
+            j++;
           }
+          // printf(" %s\n", pacote);
+          printf("ACK: %s\n", ack);
           if (pacote[BUFFER_SIZE - 33] != 1)
           {
             fwrite(&pacote, sizeof(unsigned char), (long int)pacote[BUFFER_SIZE - 33], writer);
@@ -175,16 +178,31 @@ int main(int argc, char *argv[])
             fwrite(&pacote, sizeof(unsigned char), BUFFER_SIZE - 49, writer);
           }
           receiving = pacote[BUFFER_SIZE - 33];
+          result = sendto(sock, ack, 33, 0,
+          (LPSOCKADDR) &hostAddress, sizeof(struct sockaddr));
+          if(result == SOCKET_ERROR) {
+            printf("Nao pode enviar dados %d \n",i-1);
+            closesocket(sock); //encerra o socket
+            return 1;
+          }
           printf("%s: VALIDADO %d\n", wordAux, x);
           x++;
         }
         else
         {
+          memset(ack, 0x0, 33);
           ack[0] = '0';
           j = BUFFER_SIZE - 32;
           for (i = 1; i < 33; i++)
           {
             ack[i] = pacote[j];
+          }
+          result = sendto(sock, ack, 33, 0,
+          (LPSOCKADDR) &hostAddress, sizeof(struct sockaddr));
+          if(result == SOCKET_ERROR) {
+            printf("Nao pode enviar dados %d \n",i-1);
+            closesocket(sock); //encerra o socket
+          return 1;
           }
           printf("%s: INVALIDADO %d\n", wordAux, x);
           x++;
