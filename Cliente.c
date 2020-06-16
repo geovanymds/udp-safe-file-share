@@ -32,13 +32,14 @@
 
 int main(int argc, char *argv[])
 { 
-  int i, j, k, x = 1;               //auxiliares
+  int i, j, k, x = 1, aux2;               //auxiliares
   int result;                       //variavel para validação de erros.
   char buffer[BUFFER_SIZE];         //buffer para troca de mensagens.
   char request[MAX_MSG];
   char serverIP[IP_MAX];
   char serverPortName[PORT_MAX];
   int serverPort;
+  char binarySerieNumber[] = "0000000000000000";
   char ack[33];                     //pacote de confirmação
   memset(buffer, 0x0, BUFFER_SIZE); //garente que o buffer eseja vazio
   memset(request, 0x0, MAX_MSG);  //garente que o buffer eseja vazio
@@ -191,7 +192,7 @@ int main(int argc, char *argv[])
     }
     else
     { //caso nao ocorra erro, Verifique o checksum
-      for (i = 0; i < BUFFER_SIZE - 49; i++)
+      for (i = 0; i < BUFFER_SIZE - 81; i++)
       { //Para a Primeira palavra ---
         if (i == 0)
         {
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
         }
       }
       //soma o resultado com o checksum
-      j = BUFFER_SIZE - 49;
+      j = BUFFER_SIZE - 81;
       memset(palavra2, 0x0, 17);
       for (i = 0; i < 16; i++)
       {
@@ -248,7 +249,7 @@ int main(int argc, char *argv[])
       if (strcmp(wordAux, "1111111111111111") == 0)
       {
         ack[0] = '1'; //ACK
-        j = BUFFER_SIZE - 32;
+        j = BUFFER_SIZE - 64;
         for (i = 1; i < 33; i++) //número de sequencia
         {
           ack[i] = pacote[j];
@@ -260,16 +261,23 @@ int main(int argc, char *argv[])
         /*printf("ACK: %s\n", ack);*/
         
         //Com a confirmação escreve no arquivo
-        // printf("FLAG X: %d\n", (int) pacote[BUFFER_SIZE - 33]);
-        if (pacote[BUFFER_SIZE - 33] != 1)
+        if (pacote[BUFFER_SIZE - 65] != 1)
         { //tratamento do ultimo pacote
-          fwrite(&pacote, sizeof(unsigned char), (long int)pacote[BUFFER_SIZE - 33], writer);
-          printf("OK1\n");
+          int tamanho;
+          aux2 = 0;
+          for(k = BUFFER_SIZE-32; k < BUFFER_SIZE; k++){
+            binarySerieNumber[aux2] = pacote[k];
+            aux2++;
+          }
+          tamanho = btoi(binarySerieNumber);
+          printf("tamanho = %d\n", tamanho);
+          printf("binario = %s\n", binarySerieNumber);
+          fwrite(&pacote[k], sizeof(unsigned char), tamanho, writer);
         }
         else{
-          fwrite(&pacote, sizeof(unsigned char), BUFFER_SIZE - 49, writer);
+          fwrite(&pacote, sizeof(unsigned char), BUFFER_SIZE - 81, writer);
         };
-        receiving = pacote[BUFFER_SIZE - 33];
+        receiving = pacote[BUFFER_SIZE - 65];
 
         //Envia o ACK
         result = sendto(sock, ack, 33, 0,
@@ -292,7 +300,7 @@ int main(int argc, char *argv[])
       { //Caso haja alguma falha na verficação de veracidade do pacote
         memset(ack, 0x0, 33);
         ack[0] = '0'; //NAK
-        j = BUFFER_SIZE - 32;
+        j = BUFFER_SIZE - 64;
         for (i = 1; i < 33; i++) //Nº serie
         {
           ack[i] = pacote[j];
@@ -306,7 +314,6 @@ int main(int argc, char *argv[])
           closesocket(sock); //encerra o socket
           return 1;
         }
-        printf("OK3\n");
 
         //Na necessidades de testes, descomente esse código para
         //verificar a invalidação

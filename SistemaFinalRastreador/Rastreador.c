@@ -1,12 +1,21 @@
 #include <windows.h>
   #include <winsock.h>
 #include <stdio.h>
+  #include <string.h>
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.
 #define MAX_MSG 100 //tamanho maximo de uma mensagem.
 
+typedef struct indice
+{
+  char titulo[50];
+  char ip[16];
+  char porta[6];
+}INDICE;
+
 int main(int argc, char *argv[]){
   char fileName[MAX_MSG];
+  char index[22];
   memset(fileName,0x0,MAX_MSG);
   //inicializa a biblioteca de sockets no windows.
   int result; //variavel para validação de erros
@@ -59,11 +68,33 @@ int main(int argc, char *argv[]){
       for(int k = 1; k < strlen(buffer); k++){
         fileName[k-1] = buffer[k];
       }
+
+      INDICE auxiliar;
+      int t = 0;
+      FILE *reader = fopen("Data.bin", "rb");
+      while(!feof(reader)){
+        fread(&auxiliar, sizeof(INDICE), 1, reader);
+        if(strcmp(auxiliar.titulo, fileName) == 0){
+          strcpy(index, auxiliar.ip);
+          strcat(index, "x");
+          strcat(index, auxiliar.porta);
+          t = 1;
+          break;
+        }
+      }
+      fclose(reader);
+      printf("index = %s\n", index);
+
+      if(t == 0){
+        printf("Arquivo não encontrado!");
+        return 1;
+      }  
+
       printf("FILE NAME: %s\n\n", fileName);
       printf("De %s:UDP %u: File Requested - %s\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), fileName);
       printf("\n sending Sever IP...\n");
 
-      result = sendto(sock, "127.0.0.1x8000", strlen("127.0.0.1x8000")+1, 0,
+      result = sendto(sock, index, strlen(index)+1, 0,
       (LPSOCKADDR) &clientAddress, sizeof(struct sockaddr));
       //Verifica possiveis erros
       if(result == SOCKET_ERROR) {

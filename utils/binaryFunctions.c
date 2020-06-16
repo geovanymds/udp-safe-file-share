@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include "binaryFunctions.h"
 
 //Soma
@@ -99,4 +100,12 @@ void decToBinary(int n, char binaryNum[])
     }
 }
 
+int btoi(char binaryCharArray[]){
+    int n = 0, i;
 
+    for(i=0; i<32; i++) {
+        n += pow(2,i) * (binaryCharArray[31-i] - '0');
+        // printf("%d", binaryCharArray[31-i] - '0')
+    }
+    return n;
+}

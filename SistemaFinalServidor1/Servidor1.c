@@ -35,12 +35,13 @@
 int main(int argc, char *argv[]){
 
   //Inicialização das variaveis auxiliares
-  int i, j, serieNumber, result, t = 0;
+  int i, j, serieNumber, aux, result, t = 0;
   char binarySerieNumber[33], buffer[MAX_MSG];
   char ackReceive[] = "000000000000000000000000000000000";
   char auxReceive[] = "00000000000000000000000000000000";
   char auxSerieNumber[] = "00000000000000000000000000000000";
   char fileName[MAX_MSG];
+  unsigned char myChar;
   memset(fileName,0x0,MAX_MSG);
   bool confirmacao;
   bool retry;
@@ -113,11 +114,11 @@ int main(int argc, char *argv[]){
         //Envia o arquiv por pacotes.
         while(tam > 0){
           //Lê do arquivo um pacote(BUFFER_SIZE)
-          fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-49, reader); //(-49 é o tamanho do cabeçalho)
+          fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-81, reader); //(-81 é o tamanho do cabeçalho)
 
           //Gerador de Checksum de 16bits
           memset(palavra1,0x0,17);
-          for(i = 0; i < BUFFER_SIZE-49; i++){
+          for(i = 0; i < BUFFER_SIZE-81; i++){
             //Para a Primeira palavra ---
             if(i == 0){
               for(j = 0; j < CHAR_BIT; j++){ //Le Bit a Bit de de um byte
@@ -162,15 +163,25 @@ int main(int argc, char *argv[]){
           
           //Escreve o checksum no cabeçalho do pacote
           j = 0;
-          for(i = BUFFER_SIZE-49; i < BUFFER_SIZE-33; i++){
+          for(i = BUFFER_SIZE-81; i < BUFFER_SIZE-65; i++){
             pacote[i] = palavra1[j];
             j++;
           }
-          if((tam - BUFFER_SIZE+49) <= 0){
-            pacote[BUFFER_SIZE-33] = (unsigned char)tam;
+          if((tam - BUFFER_SIZE+81) <= 0){
+            printf("tamanho = %d\n", tam);
+            pacote[BUFFER_SIZE-65] = 0;
+            pacote[tam-1] = 0;
+            memset(binarySerieNumber,'0',32);
+            decToBinary(tam,binarySerieNumber);
+            aux = 0;
+            for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
+              pacote[i] = binarySerieNumber[aux];
+              printf(" %c", pacote[i]); 
+              aux++;
+            }
           }
           else{
-            pacote[BUFFER_SIZE-33] = 1;
+            pacote[BUFFER_SIZE-65] = 1;
           }
 
           //Na necessidades de testes, descomente  os próximos 3 "printf's"
@@ -179,8 +190,8 @@ int main(int argc, char *argv[]){
           memset(binarySerieNumber,'0',32);
           decToBinary(serieNumber,binarySerieNumber); //coversor de decimal para binário
           /*printf("N Sequencia: ");*/
-          int aux = 0;
-          for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
+          aux = 0;
+          for(i=BUFFER_SIZE-64; i <BUFFER_SIZE-32; i++){
             pacote[i] = binarySerieNumber[aux]; 
             /*printf(" %c", pacote[i]);*/
             aux++;
@@ -222,7 +233,7 @@ int main(int argc, char *argv[]){
                   j++;
                 }
                 j = 0;
-                for(i = BUFFER_SIZE-32; i < BUFFER_SIZE; i++){
+                for(i = BUFFER_SIZE-64; i < BUFFER_SIZE-32; i++){
                   auxReceive[j] = pacote[i];
                   j++;
                 }
@@ -239,7 +250,7 @@ int main(int argc, char *argv[]){
               }
             }
           }
-          tam = tam - (BUFFER_SIZE-49);
+          tam = tam - (BUFFER_SIZE-81);
           serieNumber++;
         }
         fclose(reader); //Após o envio fecha o arquivo sendo lido
