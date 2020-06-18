@@ -170,7 +170,6 @@ int main(int argc, char *argv[]){
           if((tam - BUFFER_SIZE+81) <= 0){
             printf("tamanho = %d\n", tam);
             pacote[BUFFER_SIZE-65] = 0;
-            pacote[tam-1] = 0;
             memset(binarySerieNumber,'0',32);
             decToBinary(tam,binarySerieNumber);
             aux = 0;
@@ -179,6 +178,7 @@ int main(int argc, char *argv[]){
               printf(" %c", pacote[i]); 
               aux++;
             }
+            printf("OK\n");
           }
           else{
             pacote[BUFFER_SIZE-65] = 1;

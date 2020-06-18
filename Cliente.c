@@ -245,8 +245,14 @@ int main(int argc, char *argv[])
       }
       memset(wordAux, 0x0, 17);
       carryAdd = add(palavra1, palavra2, wordAux);
+      aux2 = 0;
+      for(k = BUFFER_SIZE-64; k < BUFFER_SIZE-32; k++){
+            binarySerieNumber[aux2] = pacote[k];
+            aux2++;
+      }
+      i = btoi(binarySerieNumber);
       //Se o resultado for "1111111111111111" Checksum verificado com sucesso
-      if (strcmp(wordAux, "1111111111111111") == 0)
+      if (strcmp(wordAux, "1111111111111111") == 0 && i == x)
       {
         ack[0] = '1'; //ACK
         j = BUFFER_SIZE - 64;
@@ -261,15 +267,19 @@ int main(int argc, char *argv[])
         /*printf("ACK: %s\n", ack);*/
         
         //Com a confirmação escreve no arquivo
-        if (pacote[BUFFER_SIZE - 65] != 1)
+        if (pacote[BUFFER_SIZE - 65] == 0)
         { //tratamento do ultimo pacote
+          printf("\n\nOK1\n");
           int tamanho;
           aux2 = 0;
+          memset(binarySerieNumber, '0', 32);
           for(k = BUFFER_SIZE-32; k < BUFFER_SIZE; k++){
             binarySerieNumber[aux2] = pacote[k];
             aux2++;
           }
+          printf("OK2\n");
           tamanho = btoi(binarySerieNumber);
+          printf("OK3\n");
           printf("tamanho = %d\n", tamanho);
           printf("binario = %s\n", binarySerieNumber);
           fwrite(&pacote[k], sizeof(unsigned char), tamanho, writer);
@@ -293,10 +303,10 @@ int main(int argc, char *argv[])
         //verificar a validação
         /*
           printf("Checksum Result %s: Package %d - [VALIDADO]\n", wordAux, x);
-          x++;
         */
+        x++;
       }
-      else
+      else if(i == x)
       { //Caso haja alguma falha na verficação de veracidade do pacote
         memset(ack, 0x0, 33);
         ack[0] = '0'; //NAK

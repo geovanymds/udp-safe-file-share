@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
       printf("index = %s\n", index);
 
       if(t == 0){
-        printf("Arquivo não encontrado!");
+        printf("Arquivo nao encontrado!");
         return 1;
       }  
 
@@ -102,6 +102,14 @@ int main(int argc, char *argv[]){
         closesocket(sock); //encerra o socket
         return 1;
       }
+
+      FILE *updater = fopen("Data.bin", "ab");
+      INDICE aux;
+      strcpy(aux.titulo, fileName);
+      strcpy(aux.ip, inet_ntoa(clientAddress.sin_addr));
+      strcpy(aux.porta, itoa(clientAddress.sin_port, aux.porta, 10));
+      fwrite(&aux, sizeof(INDICE), 1, updater);
+      fclose(updater);
     }
   }
 
