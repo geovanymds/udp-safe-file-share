@@ -8,7 +8,7 @@ Foi desenvolvida uma aplicação em linguagem C para realizar o compartilhamento
 
 * Abrir o prompt de comando na pasta do rastreador;
 
-* Executar o seguinte comando:*
+* Executar o seguinte comando:
 ``
 $ gcc Rastreador.c -o rastreadorudp
 ``
