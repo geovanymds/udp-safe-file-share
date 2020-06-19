@@ -25,25 +25,25 @@
 */
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.
-#define MAX_MSG 100
-#define IP_MAX 16
-#define PORT_MAX 6
+#define MAX_MSG 100  //tamanho máximo para as requisiçõe de arquivos
+#define IP_MAX 16  //tamanho máximo de um ip
+#define PORT_MAX 6  //tamanho máximo de uma porta
 #define BUFFER_SIZE 500  //tamanho de cada pacote do arquivo
 
 int main(int argc, char *argv[])
 { 
-  int i, j, k, x = 1, aux2;               //auxiliares
-  int result;                       //variavel para validação de erros.
-  char buffer[BUFFER_SIZE];         //buffer para troca de mensagens.
-  char request[MAX_MSG];
-  char serverIP[IP_MAX];
-  char serverPortName[PORT_MAX];
-  int serverPort;
-  char binarySerieNumber[] = "0000000000000000";
-  char ack[33];                     //pacote de confirmação
-  memset(buffer, 0x0, BUFFER_SIZE); //garente que o buffer eseja vazio
-  memset(request, 0x0, MAX_MSG);  //garente que o buffer eseja vazio
-  memset(serverIP, 0x0, IP_MAX); //garente que o buffer eseja vazio
+  int i, j, k, x = 1, aux2;              //auxiliares
+  int result;                            //variavel para validação de erros.
+  char buffer[BUFFER_SIZE];              //buffer para troca de mensagens.
+  char request[MAX_MSG];                 //buffer para troca de requisições
+  char serverIP[IP_MAX];                 //leitor para IP
+  char serverPortName[PORT_MAX];         //Leitor para porta
+  int serverPort;                        //leitor para porta inteira
+  char binarySerieNumber[] = "0000000000000000"; //auxiliar para conversão binaria
+  char ack[33];                          //pacote de confirmação
+  memset(buffer, 0x0, BUFFER_SIZE);      //garente que o buffer eseja vazio
+  memset(request, 0x0, MAX_MSG);         //garente que o buffer eseja vazio
+  memset(serverIP, 0x0, IP_MAX);         //garente que o buffer eseja vazio
   memset(serverPortName, 0x0, PORT_MAX); //garente que o buffer eseja vazio
 
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     return (1);
   }
 
-  //Encontrar o host
+  //Encontrar o rastreador
   LPHOSTENT TrackerEntry; //Estrutura para guardar informaçõe de um host(IP, nome, ...)
   TrackerEntry = gethostbyname(argv[1]); //funciona como um DNS qque retorna as informações de um host usando o seu nome(IP)
   if (TrackerEntry == NULL)
@@ -74,13 +74,13 @@ int main(int argc, char *argv[])
     return (1);
   }
 
-  //Define umma estrutura para guardar o endereço do host e vinculalo a porta escolhida.
+  //Define uma estrutura para guardar o endereço do host e vinculalo a porta definida.
   struct sockaddr_in TrackerAddress;
   TrackerAddress.sin_family = TrackerEntry->h_addrtype;
   TrackerAddress.sin_addr = *((LPIN_ADDR)*TrackerEntry->h_addr_list); //converte o endereço para o formato correto
   TrackerAddress.sin_port = htons(LOCAL_SERVER_PORT); //converte o numero da porta para o endereço corret
 
-  //Cria o socket do cliente
+  //Cria o socket de comunicação do cliente
   SOCKET sock = INVALID_SOCKET;
   sock = socket(AF_INET, SOCK_DGRAM, 0);
   if (sock == INVALID_SOCKET)
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
   clientAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   clientAddress.sin_port = htons(0);
 
-  //Associa o endereço cliente vinculado ao sockets do cliente, verificando erros
+  //Associa o endereço do cliente vinculado ao sockets do cliente
   result = bind(sock, (struct sockaddr *)&clientAddress, sizeof(clientAddress));
   if (result == SOCKET_ERROR)
   { //verifica possíveis erros
@@ -104,12 +104,14 @@ int main(int argc, char *argv[])
     return (1);
   }
 
-  //Envio da requisição pelo pacote
+  //Envio da requisição pelo arquivo
   int TrackerLength = sizeof(TrackerAddress);
   request[0] = '0';
   strcat(request, argv[2]);
+
+  /*printf("REQUEST: %s\n", request);*/
+  
   //envia a requisição pelo socket(sock) para o endereço na estrutura hostAddres
-  //printf("REQUEST: %s\n", request);
   result = sendto(sock, request, MAX_MSG, 0,
                   (LPSOCKADDR)&TrackerAddress, sizeof(struct sockaddr));
   if (result == SOCKET_ERROR)
@@ -119,6 +121,7 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  //Espera a resposta com o IP e porta do servidor que possui o arquivo
   memset(request, 0x0, MAX_MSG);
   result = recvfrom(sock, request, BUFFER_SIZE, 0, (struct sockaddr *)&TrackerAddress, &TrackerLength);
   if (result == SOCKET_ERROR)
@@ -128,20 +131,23 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  k = 0;
+  k = 0; //separar o IP
   while(request[k] != 'x'){
     serverIP[k] = request[k];
     k++;
   }
+
   k++;
-  j = 0;
+  j = 0; //separar a PORTA 
   for(k = k; k < strlen(request); k++){
     serverPortName[j] = request[k];
     j++;
   }
   serverPort = atoi(serverPortName);
-  printf("IP: %s\n PORTA: %d\n", serverIP, serverPort);
-  //Encontrar o host
+
+  /*printf("IP: %s\n PORTA: %d\n", serverIP, serverPort);*/
+
+  //Encontrar o servidor
   LPHOSTENT hostEntry; //Estrutura para guardar informaçõe de um host(IP, nome, ...)
   hostEntry = gethostbyname(serverIP); //funciona como um DNS qque retorna as informações de um host usando o seu nome(IP)
   if (hostEntry == NULL)
@@ -150,13 +156,13 @@ int main(int argc, char *argv[])
     return (1);
   }
 
-  //Define umma estrutura para guardar o endereço do host e vinculalo a porta escolhida.
+  //Define umma estrutura para guardar o endereço do servidor vinculalo ao IP e porta retornados.
   struct sockaddr_in hostAddress;
   hostAddress.sin_family = hostEntry->h_addrtype;
   hostAddress.sin_addr = *((LPIN_ADDR)*hostEntry->h_addr_list); //converte o endereço para o formato correto
   hostAddress.sin_port = htons(serverPort); //converte o numero da porta para o endereço corret
 
-
+  //Envia o pedido do arquivo para o servidor  
   memset(request, 0x0, MAX_MSG);
   request[0] = '1';
   strcat(request, argv[2]);
@@ -169,17 +175,17 @@ int main(int argc, char *argv[])
     return 1;
   }
 
-  int hostLength = sizeof(hostAddress);
-  //Prepatando para receber o pacote
-  //Inicialização das variaveis auxiliares
-  int receiving = 1;        //Para identificação e tratamento do último pacote do arquivo
-  char pacote[BUFFER_SIZE]; //Estrutura que guarda pacotes
+
+  //Preparando para receber pacotes...
+  int hostLength = sizeof(hostAddress);        //tamanho do endereço do servidor para conversão
+  int receiving = 1;                           //Para identificação e tratamento do último pacote do arquivo
+  char pacote[BUFFER_SIZE];                    //Estrutura que guarda pacotes
   char palavra1[] = "0000000000000000";        //auxiliar para soma do checksum
   char palavra2[] = "0000000000000000";        //auxiliar para soma do checksum
   char wordAux[] = "0000000000000000";         //auxiliar para soma do checksum
-  char carryAdd;            //auxiliar para soma do checksum
+  char carryAdd;                               //auxiliar para soma do checksum
 
-  //Recebe os pacotes do arquivo
+  //Recebendo os pacotes do arquivo
   FILE *writer; //Incializa um arquivo para escrever os pacotes enviados
   writer = fopen(argv[2], "wb");
   while (receiving == 1) //enquanto não for o ultimo pacote
@@ -235,79 +241,72 @@ int main(int argc, char *argv[])
           }
         }
       }
+
       //soma o resultado com o checksum
-      j = BUFFER_SIZE - 81;
+      j = BUFFER_SIZE - 81; //posição do checksum no cabeçalho
       memset(palavra2, 0x0, 17);
-      for (i = 0; i < 16; i++)
-      {
+      for (i = 0; i < 16; i++){
         palavra2[i] = pacote[j];
         j++;
       }
       memset(wordAux, 0x0, 17);
       carryAdd = add(palavra1, palavra2, wordAux);
-      aux2 = 0;
+      
+      aux2 = 0; //adiquirindo o número de sequência
       for(k = BUFFER_SIZE-64; k < BUFFER_SIZE-32; k++){
             binarySerieNumber[aux2] = pacote[k];
             aux2++;
       }
       i = btoi(binarySerieNumber);
-      //Se o resultado for "1111111111111111" Checksum verificado com sucesso
+
+      //Se o resultado for "1111111111111111" Checksum verificado com sucesso, confere x para pacotes duplicados
       if (strcmp(wordAux, "1111111111111111") == 0 && i == x)
       {
-        ack[0] = '1'; //ACK
+        //gera um ACK com o número de sequência
+        ack[0] = '1'; 
         j = BUFFER_SIZE - 64;
-        for (i = 1; i < 33; i++) //número de sequencia
+        for (i = 1; i < 33; i++) 
         {
           ack[i] = pacote[j];
           j++;
         }
 
-        //Na necessidades de testes, descomente esse código para
-        //verificar os ACKS's sendo enviado
         /*printf("ACK: %s\n", ack);*/
         
-        //Com a confirmação escreve no arquivo
-        if (pacote[BUFFER_SIZE - 65] == 0)
-        { //tratamento do ultimo pacote
-          printf("\n\nOK1\n");
-          int tamanho;
-          aux2 = 0;
-          memset(binarySerieNumber, '0', 32);
-          for(k = BUFFER_SIZE-32; k < BUFFER_SIZE; k++){
-            binarySerieNumber[aux2] = pacote[k];
-            aux2++;
-          }
-          printf("OK2\n");
-          tamanho = btoi(binarySerieNumber);
-          printf("OK3\n");
-          printf("tamanho = %d\n", tamanho);
-          printf("binario = %s\n", binarySerieNumber);
-          fwrite(&pacote[k], sizeof(unsigned char), tamanho, writer);
-        }
-        else{
-          fwrite(&pacote, sizeof(unsigned char), BUFFER_SIZE - 81, writer);
-        };
-        receiving = pacote[BUFFER_SIZE - 65];
-
         //Envia o ACK
         result = sendto(sock, ack, 33, 0,
         (LPSOCKADDR) &hostAddress, sizeof(struct sockaddr));
-        // printf("OK2\n");
-        if(result == SOCKET_ERROR) {
+        if(result == SOCKET_ERROR)
+        { //verifica possíveis erros
           printf("falha ao enviar ACK\n");
           closesocket(sock); 
           return 1;
         }
 
-        //Na necessidades de testes, descomente esse código para
-        //verificar a validação
-        /*
-          printf("Checksum Result %s: Package %d - [VALIDADO]\n", wordAux, x);
-        */
+        //Com a confirmação escreve no arquivo
+        if (pacote[BUFFER_SIZE - 65] == 0)
+        { //tratamento do ultimo pacote
+          int tamanho = 0;
+          aux2 = 0;
+          memset(binarySerieNumber, '0', 32);
+          for(k = BUFFER_SIZE-32; k < BUFFER_SIZE; k++){ //tamanho do último pacote
+            binarySerieNumber[aux2] = pacote[k];
+            aux2++;
+          }
+          tamanho = btoi(binarySerieNumber);
+          fwrite(&pacote, sizeof(unsigned char), tamanho, writer);
+        }
+        else{ //para os demais pacotes
+          fwrite(&pacote, sizeof(unsigned char), BUFFER_SIZE - 81, writer);
+        };
+        receiving = pacote[BUFFER_SIZE - 65]; //flag que encerra o recebimento quando for o ultimo pacote
+
+        /* printf("Checksum Result %s: Package %d - [VALIDADO]\n", wordAux, x); */
+        
         x++;
       }
       else if(i == x)
-      { //Caso haja alguma falha na verficação de veracidade do pacote
+      { //Caso haja alguma falha na verficação da veracidade do pacote
         memset(ack, 0x0, 33);
         ack[0] = '0'; //NAK
         j = BUFFER_SIZE - 64;
@@ -319,18 +318,15 @@ int main(int argc, char *argv[])
         //Envia NAK
         result = sendto(sock, ack, 33, 0,
         (LPSOCKADDR) &hostAddress, sizeof(struct sockaddr));
-        if(result == SOCKET_ERROR) {
+        if(result == SOCKET_ERROR) 
+        { //verifica possíveis erros
           printf("Nao pode enviar dados %d \n",i-1);
           closesocket(sock); //encerra o socket
           return 1;
         }
 
-        //Na necessidades de testes, descomente esse código para
-        //verificar a invalidação
-        /*
-          printf("Checksum Result %s: Package %d - [INVALIDO]\n", wordAux, x);
-          x++;
-        */
+        /*printf("Checksum Result %s: Package %d - [INVALIDO]\n", wordAux, x);*/
+      
       }
     }
   }

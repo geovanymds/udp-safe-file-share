@@ -23,29 +23,28 @@
   Thiago Silva Pereira - 2018008209
 
   Instruções para compilação e execução:
-  Compilar - gcc PackageSend.c -o servidorudp
+  Compilar - gcc Servidor.c -o servidorudp
   Executar - ./servidorudp
   (Precisa estar na mesma pasta que os arquivos a qual consegue enviar)
 */
 
-#define LOCAL_SERVER_PORT 8000 //defina aqui qual porta usar na comunicação do socket.
+#define LOCAL_SERVER_PORT 8000 //porta para comunicação do socket
 #define MAX_MSG 100 //tamanho maximo de uma mensagem comum (para troca de informações como ip's).
 #define BUFFER_SIZE 500 //tamanho de cada pacote do arquivo
 
 int main(int argc, char *argv[]){
 
-  //Inicialização das variaveis auxiliares
-  int i, j, serieNumber, aux, result, t = 0;
-  char binarySerieNumber[33], buffer[MAX_MSG];
-  char ackReceive[] = "000000000000000000000000000000000";
-  char auxReceive[] = "00000000000000000000000000000000";
-  char auxSerieNumber[] = "00000000000000000000000000000000";
-  char fileName[MAX_MSG];
-  unsigned char myChar;
-  memset(fileName,0x0,MAX_MSG);
-  bool confirmacao;
-  bool retry;
-  bool vemACK; 
+  //Inicialização das variaveis auxiliares                      
+  int i, j, serieNumber, aux, result, t = 0;                   //Variaveis auxilia
+  char binarySerieNumber[33], buffer[MAX_MSG];                 //Auxiliar para conversão binaria e buffer de requisições
+  char ackReceive[] = "000000000000000000000000000000000";     //ACK buffer
+  char auxReceive[] = "00000000000000000000000000000000";      //Auxiliador para comparação do número de sequência
+  char auxSerieNumber[] = "00000000000000000000000000000000";  //Auxiliador para comparação do número de sequência
+  char fileName[MAX_MSG];   //Guarda o nome do arquivo requisitado
+  unsigned char myChar;     //????
+  bool confirmacao;         //Para confirmar recebimento do ack
+  bool retry;               //Para falhas no envio
+  bool vemACK;              //Para esperar por um ack
 
   //Inicializa a biblioteca de sockets no windows.
   WSADATA wsaData;
@@ -58,7 +57,8 @@ int main(int argc, char *argv[]){
   //Cria o socket do servidor  
   SOCKET sock = INVALID_SOCKET;
   sock = socket(AF_INET, SOCK_DGRAM, 0);
-  if(sock == INVALID_SOCKET) { //verifica possíveis erros
+  if(sock == INVALID_SOCKET)
+  { //verifica possíveis erros
     printf("Erro ao criar o socket\n");
     return(1);
   }
@@ -69,15 +69,17 @@ int main(int argc, char *argv[]){
   ServerAddress.sin_addr.s_addr = htonl(INADDR_ANY);
   ServerAddress.sin_port = htons(LOCAL_SERVER_PORT);
 
-  //Associa o endereço cliente vinculado ao sockets do cliente, verificando erros
+  //Associa o endereço ao socket
   result = bind(sock, (struct sockaddr *) &ServerAddress, sizeof(ServerAddress));
-  if(result == SOCKET_ERROR) { //verifica possíveis erros
-      printf("Nao foi possivel associar o endereço/porta ao socket\n");
-      closesocket(sock);
-      return(1);
+  if(result == SOCKET_ERROR)
+  { //verifica possíveis erros
+    printf("Nao foi possivel associar o endereço/porta ao socket\n");
+    closesocket(sock);
+    return(1);
   }
 
-  struct sockaddr_in clientAddress; //estrutura para guardar as informações do cliente requisitante
+  //Recebe requisições por arquivos
+  struct sockaddr_in clientAddress;      //estrutura para guardar as informações do cliente requisitante
   int cliLength = sizeof(clientAddress); //tamanho do endereço do requisitante
   while(1){
 
@@ -88,32 +90,37 @@ int main(int argc, char *argv[]){
     do{
     result = recvfrom(sock, buffer, MAX_MSG, 0, (struct sockaddr *) &clientAddress, &cliLength);
     }while(buffer[0] != '1');
-    if(result == SOCKET_ERROR){ //verifica possíveis erros
+    if(result == SOCKET_ERROR)
+    { //verifica possíveis erros
       printf("Someone is trying to connect: status [FAILED]\n");
     }
-    else{ //Se a conexão ocorreu sem falhas
+    else{ //Se a conexão ocorreu sem falhas...
+      //Guarda o nome do arquivo
+      memset(fileName,0x0,MAX_MSG);  
       for(int k = 1; k < strlen(buffer); k++){
         fileName[k-1] = buffer[k];
       }
+
       printf("De %s:UDP %u: File Requested - %s\n", inet_ntoa(clientAddress.sin_addr), ntohs(clientAddress.sin_port), fileName);
       printf("\n sending file...\n");
 
+      //Abre o arquivo em leitura para o envio
       FILE * reader; //ponteiro para o arquivo requisitado
       reader = fopen(fileName, "rb"); //Abre a leitura em binário
       if(reader != NULL){ //verifica possíveis erros
         
         //Inicializa as variaveis auxiliares
-        struct stat status; //armazena as principais informações do arquivo sendo enviado
+        struct stat status;  //armazena as principais informações do arquivo sendo enviado
         stat(fileName, &status);
-        long int tam = status.st_size;
-        unsigned char pacote[BUFFER_SIZE];
-        char palavra1[17], palavra2[17], wordAux[17];
-        char carryAdd;   //
+        long int tam = status.st_size;                //Auxiliar para identificar o ultimo pacote usando o tamanho do arquivo      
+        unsigned char pacote[BUFFER_SIZE];            //Buffer para gerar o pacote
+        char palavra1[17], palavra2[17], wordAux[17]; //auxiliares para o checksum
+        char carryAdd;                                //auxiliar para carregar um na soma do checksum
         serieNumber = 1; //inicializa o contador para o número de série
 
-        //Envia o arquiv por pacotes.
+        //Envia o arquivo por pacotes.
         while(tam > 0){
-          //Lê do arquivo um pacote(BUFFER_SIZE)
+          //Lê do arquivo um pacote(BUFFER_SIZE-81)
           fread(&pacote, sizeof(unsigned char), BUFFER_SIZE-81, reader); //(-81 é o tamanho do cabeçalho)
 
           //Gerador de Checksum de 16bits
@@ -157,8 +164,6 @@ int main(int argc, char *argv[]){
           //Realiza o complemento de 1
           comp(palavra1);
 
-          //Na necessidades de testes, descomente esse código para
-          //verificar os Checksum's sendo enviado
           /*printf("CheckSum: %s\n", palavra1);*/
           
           //Escreve o checksum no cabeçalho do pacote
@@ -167,18 +172,20 @@ int main(int argc, char *argv[]){
             pacote[i] = palavra1[j];
             j++;
           }
-          if((tam - BUFFER_SIZE+81) <= 0){
+
+          //tratamento do ultimo pacote
+          if((tam - BUFFER_SIZE+81) <= 0){ 
             printf("tamanho = %d\n", tam);
             pacote[BUFFER_SIZE-65] = 0;
             memset(binarySerieNumber,'0',32);
             decToBinary(tam,binarySerieNumber);
             aux = 0;
+            //guarda o tamanho do ultimo pacote
             for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
               pacote[i] = binarySerieNumber[aux];
               printf(" %c", pacote[i]); 
               aux++;
             }
-            printf("OK\n");
           }
           else{
             pacote[BUFFER_SIZE-65] = 1;
@@ -205,7 +212,8 @@ int main(int argc, char *argv[]){
             //Envia mensagem
             result = sendto(sock, (const char *)pacote, BUFFER_SIZE, 0,
             (LPSOCKADDR) &clientAddress, sizeof(struct sockaddr));
-            if(result == SOCKET_ERROR){ //verifica possíveis erros
+            if(result == SOCKET_ERROR)
+            { //verifica possíveis erros
               printf("Falha no envio do pacote %d\n", serieNumber);
               retry = true;
             }
@@ -238,7 +246,7 @@ int main(int argc, char *argv[]){
                   j++;
                 }
 
-                //Se foi recebido com um ack"(ackReceive[0] == '1')" e com o número de senquência correto 
+                //Se foi recebido com um ack"(ackReceive[0] == '1')" com número de senquência correto 
                 if((ackReceive[0] == '1')&&(!strcmp(auxSerieNumber,auxReceive)))
                 {
                   confirmacao = true;
@@ -250,8 +258,8 @@ int main(int argc, char *argv[]){
               }
             }
           }
-          tam = tam - (BUFFER_SIZE-81);
-          serieNumber++;
+          tam = tam - (BUFFER_SIZE-81); //diminui tam para descobrir o ultimo pacote
+          serieNumber++; //incrementa o número de serie
         }
         fclose(reader); //Após o envio fecha o arquivo sendo lido
       }
