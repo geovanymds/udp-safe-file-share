@@ -2,6 +2,8 @@
 
 ## 1 Descrição do projeto
 
+### Projeto realizado para a disciplina de redes de computadores da UNIFEI (Universidade Federal de Itajubá)
+
 Foi desenvolvida uma aplicação em linguagem C para realizar o compartilhamento de arquivos entre hospedeiros dentro de uma mesma rede, inspirado no bit torrent. Ela funciona estabelecendo uma conexão UDP entre os hospedeiros, ficando sob responsabilidade da aplicação realizar o transporte confiável ( através do número de sequência, checksum e temporizador) de dados. Um hospedeiro se conecta ao rastreador e solicita um arquivo e o rastreador devolve o endereço de IP e porta de quem possui aquele arquivo. Como os hospedeiros são executados na mesma máquina, foi utilizado um sistema de diretórios para representá-los. Ao receber o endereço e a porta o hospedeiro solicitante estabelece a conexão e ocorre a transferência de arquivos.
 
 ## 2 Guia de Execução
