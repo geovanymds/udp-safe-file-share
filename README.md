@@ -9,9 +9,9 @@ Foi desenvolvida uma aplicação em linguagem C para realizar o compartilhamento
 *Abrir o prompt de comando na pasta do rastreador;
 
 *Executar o seguinte comando:
-$gcc Rastreador.c -o rastreadorudp
+$ gcc Rastreador.c -o rastreadorudp
 *Em seguida, executar o programa através do comando:
-$./rastreadorudp
+$ ./rastreadorudp
 Esses comandos farão com que o rastreador espere por uma colicitação
 
 
