@@ -44,6 +44,6 @@ $ - gcc Cliente.c -o clienteudp
 $ ./clienteudp 127.0.0.1 "NomeDoArquivo"
 `
 </br>
-OBS: Pode ser executado mais de um servidor ao mesmo tempo, bastando repetir o passo 1.2 para os demais servidores. Isto pode ser útil para observar o comportamento do programa com a presença de mais hospedeiros. </br>
-O arquivo que deseja receber deve estar presente na pasta do servidor(es) em execução.
+OBS: Pode ser executado mais de um servidor ao mesmo tempo, bastando repetir o passo 2.2 para os demais servidores. Isto pode ser útil para observar o comportamento do programa com a presença de mais hospedeiros. </br>
+O arquivo que deseja receber deve estar presente na pasta de um dos servidores em execução.
 
