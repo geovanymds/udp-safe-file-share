@@ -47,5 +47,12 @@ $ ./clienteudp 127.0.0.1 "NomeDoArquivo"
 OBS: Pode ser executado mais de um servidor ao mesmo tempo, bastando repetir o passo 2.2 para os demais servidores. Isto pode ser útil para observar o comportamento do programa com a presença de mais hospedeiros. </br>
 O arquivo que deseja receber deve estar presente na pasta de um dos servidores em execução. </br>
 
+Trabalho realizado pelo grupo:
+
+[I'm an inline-style link](https://github.com/GeovanyMendess "Geovany")</br>
+[I'm an inline-style link](https://github.com/Leobrine25 "Leonardo")</br>
+[I'm an inline-style link](https://github.com/Shinku159 "Thiago")</br>
+
+
 
 
