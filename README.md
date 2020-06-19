@@ -1,12 +1,12 @@
 # udp-safe-file-share
 
-## Descrição do projeto
+## 1 Descrição do projeto
 
 Foi desenvolvida uma aplicação em linguagem C para realizar o compartilhamento de arquivos entre hospedeiros dentro de uma mesma rede, inspirado no bit torrent. Ela funciona estabelecendo uma conexão UDP entre os hospedeiros, ficando sob responsabilidade da aplicação realizar o transporte confiável ( através do número de sequência, checksum e temporizador) de dados. Um hospedeiro se conecta ao rastreador e solicita um arquivo e o rastreador devolve o endereço de IP e porta de quem possui aquele arquivo. Como os hospedeiros são executados na mesma máquina, foi utilizado um sistema de diretórios para representá-los. Ao receber o endereço e a porta o hospedeiro solicitante estabelece a conexão e ocorre a transferência de arquivos.
 
-## 1 Guia de Execução
+## 2 Guia de Execução
 
-### 1.1 Executando o rastreador
+### 2.1 Executando o rastreador
 
 * Abrir o prompt de comando na pasta do rastreador;
 * Executar o seguinte comando: </br>
@@ -20,7 +20,7 @@ $ ./rastreadorudp
 Esses comandos farão com que o rastreador espere por uma solicitação. </br>
 
 
-### 1.2 Executando um servidor
+### 2.2 Executando um servidor
 
 * Abrir um segundo prompt na pasta de um dos servidores; </br>
 * Executar o comando: </br>
@@ -33,7 +33,7 @@ $ ./servidorudp
 `
 Esses comandos farão com que o servidor aguarde a colicitação por um de seus arquivos.
 
-### 1.3 Executando o cliente
+### 2.3 Executando o cliente
 
 * Abrir um terceiro terminal na pasta raíz e executar o seguinte comando: </br>
 `
@@ -44,6 +44,6 @@ $ - gcc Cliente.c -o clienteudp
 $ ./clienteudp 127.0.0.1 "NomeDoArquivo"
 `
 </br>
-OBS: Pode ser executado mais de um servidor ao mesmo tempo, bastando repetir o passo 1.2 para os demais servidores.
+OBS: Pode ser executado mais de um servidor ao mesmo tempo, bastando repetir o passo 1.2 para os demais servidores. Isto pode ser útil para observar o comportamento do programa com a presença de mais hospedeiros. </br>
 O arquivo que deseja receber deve estar presente na pasta do servidor(es) em execução.
 
