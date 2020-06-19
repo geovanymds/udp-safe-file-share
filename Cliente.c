@@ -19,9 +19,11 @@
   Thiago Silva Pereira - 2018008209
 
   Instruções para compilação e execução:
-  Compilar - gcc PackageSend.c -o clienteudp
+  Compilar - gcc Cliente.c -o clienteudp
   Executar - ./clienteudp 127.0.0.1 NomeDoArquivo
-  (Arquivo incluso para testes é Butterfly.jpg)
+  
+  Há Alguns comentários com print's que podem
+  ajudar em testes.
 */
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.

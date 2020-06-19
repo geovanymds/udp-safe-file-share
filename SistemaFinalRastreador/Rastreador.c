@@ -16,7 +16,9 @@
   Instruções para compilação e execução:
   Compilar - gcc Rastreador.c -o rastreadorudp
   Executar - ./rastreadorudp
-  (Precisa estar na mesma pasta que os arquivos a qual consegue enviar)
+
+  Há Alguns comentários com print's que podem
+  ajudar em testes.
 */
 
 #define LOCAL_SERVER_PORT 1500 //defina aqui qual porta usar na comunicação do socket.

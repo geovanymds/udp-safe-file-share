@@ -25,23 +25,24 @@
   Instruções para compilação e execução:
   Compilar - gcc Servidor.c -o servidorudp
   Executar - ./servidorudp
-  (Precisa estar na mesma pasta que os arquivos a qual consegue enviar)
+  
+  Há Alguns comentários com print's que podem
+  ajudar em testes.
 */
 
-#define LOCAL_SERVER_PORT 5000 //porta para comunicação do socket
+#define LOCAL_SERVER_PORT 8080 //porta para comunicação do socket
 #define MAX_MSG 100 //tamanho maximo de uma mensagem comum (para troca de informações como ip's).
 #define BUFFER_SIZE 500 //tamanho de cada pacote do arquivo
 
 int main(int argc, char *argv[]){
 
   //Inicialização das variaveis auxiliares                      
-  int i, j, serieNumber, aux, result, t = 0;                   //Variaveis auxilia
+  int i, j, serieNumber, aux, result;                   //Variaveis auxilia
   char binarySerieNumber[33], buffer[MAX_MSG];                 //Auxiliar para conversão binaria e buffer de requisições
   char ackReceive[] = "000000000000000000000000000000000";     //ACK buffer
   char auxReceive[] = "00000000000000000000000000000000";      //Auxiliador para comparação do número de sequência
   char auxSerieNumber[] = "00000000000000000000000000000000";  //Auxiliador para comparação do número de sequência
   char fileName[MAX_MSG];   //Guarda o nome do arquivo requisitado
-  unsigned char myChar;     //????
   bool confirmacao;         //Para confirmar recebimento do ack
   bool retry;               //Para falhas no envio
   bool vemACK;              //Para esperar por um ack
@@ -175,7 +176,7 @@ int main(int argc, char *argv[]){
 
           //tratamento do ultimo pacote
           if((tam - BUFFER_SIZE+81) <= 0){ 
-            printf("tamanho = %d\n", tam);
+            /*printf("tamanho = %d\n", tam);*/
             pacote[BUFFER_SIZE-65] = 0;
             memset(binarySerieNumber,'0',32);
             decToBinary(tam,binarySerieNumber);
@@ -183,7 +184,7 @@ int main(int argc, char *argv[]){
             //guarda o tamanho do ultimo pacote
             for(i=BUFFER_SIZE-32; i <BUFFER_SIZE; i++){
               pacote[i] = binarySerieNumber[aux];
-              printf(" %c", pacote[i]); 
+              /*printf(" %c", pacote[i]);*/ 
               aux++;
             }
           }
