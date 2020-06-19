@@ -6,18 +6,42 @@ Foi desenvolvida uma aplicação em linguagem C para realizar o compartilhamento
 
 ## Guia de Execução
 
+### Executando o rastreador
+
 * Abrir o prompt de comando na pasta do rastreador;
 
 * Executar o seguinte comando: </br>
-``
+`
 $ gcc Rastreador.c -o rastreadorudp
-``
-* Em seguida, executar o programa através do comando:
-``
+`
+* Em seguida, executar o programa através do comando: </br>
+`
 $ ./rastreadorudp
-``
-Esses comandos farão com que o rastreador espere por uma colicitação
+`
+Esses comandos farão com que o rastreador espere por uma solicitação. </br>
 
 
+### Executando um servidor
 
-gcc PackageSend.c -o send -l ws2_32 utils/binaryFunctions.c
+* Abrir um segundo prompt na pasta de um dos servidores; </br>
+* Executar o comando: </br>
+`
+$ gcc Servidor.c -o servidorudp
+`
+* Em seguida executar o programa gerado: </br>
+`
+$ ./servidorudp
+`
+Esses comandos farão com que o servidor aguarde a colicitação por um de seus arquivos.
+
+### Executando o cliente
+
+* Abrir um terceiro terminal na pasta raíz e executar o seguinte comando: </br>
+`
+$ - gcc Cliente.c -o clienteudp 
+`
+* Em seguida executar o programa gerado: </br>
+`
+$ ./clienteudp 127.0.0.1 "NomeDoArquivo"
+`
+
